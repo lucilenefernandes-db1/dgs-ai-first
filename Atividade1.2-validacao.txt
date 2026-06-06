@@ -1,0 +1,61 @@
+Tenho todos os documentos necessários em contexto. Vou ler também o histórico de conversa com o Claude para completar a avaliação.Tenho todos os elementos para uma avaliação completa. O histórico de conversa revela o processo inteiro: construção do system prompt, geração das respostas v1, avaliação crítica das respostas, identificação das fragilidades latentes, geração da v2, e reteste. Posso avaliar agora.
+
+---
+
+## Avaliação do Exercício 1.2
+
+### Resumo
+
+O entregável do exercício 1.2 é de alta qualidade e demonstra maturidade técnica em engenharia de prompt e engenharia de contexto. O participante produziu um system prompt específico e robusto, testou com evidências reais, executou o ciclo gerar → avaliar → iterar de forma rigorosa, e a iteração v1 → v2 é substantiva e bem documentada. O conjunto de artefatos é diretamente utilizável em produção sem modificações adicionais.
+
+---
+
+### Scores por Dimensão
+
+| Dimensão | Score | Justificativa |
+|----------|-------|---------------|
+| D1 — Domínio Conceitual | 3 | O participante demonstra domínio real da distinção estático/dinâmico: cada seção do system prompt é classificada com justificativa de variabilidade ("só muda em redesign do sistema", "determinado pelo cliente ativo no chamado", "acúmulo irreversível"). A estimativa de tokens por componente usa a regra 0,75 palavras/token aplicada ao texto bruto de cada seção, não como número inventado. A análise de sessões longas vai além do óbvio — identifica que o risco não é esgotar a janela, mas que histórico e chunks competem pela atenção do modelo, e propõe truncamento após 6-8 turns com justificativa de implementação ("o número de turns é sempre conhecido e simples de implementar como gatilho"). |
+| D2 — Uso de Ferramentas | 3 | O histórico de conversa com o Claude está completamente documentado e evidencia um ciclo de três etapas distintas: (1) geração do system prompt v1; (2) uso do Claude como assistente de atendimento para testar as 3 perguntas; (3) uso do Claude como avaliador crítico das próprias respostas com checklist estruturado. O prompt de avaliação é específico e não genérico — verifica pontos concretos ("A resposta declarou que carga perigosa NÃO é elegível?", "A resposta recusou apresentar valor final em reais?"). A iteração v1 → v2 foi motivada pelos outputs do ciclo de avaliação e é concretamente verificável na tabela comparativa entregue. |
+| D3 — Qualidade do Entregável | 3 | O conjunto de artefatos está completo: system prompt v1 e v2 com tabela comparativa de diferenças, 3 perguntas testadas com respostas reais documentadas (v1 e v2), análise crítica das respostas v1 com lista de falhas e fragilidades latentes, e documento de estrutura de contexto com tabela de componentes + orçamento de tokens. Cada artefato é acionável por outro membro do time sem esclarecimentos. O sistema prompt segue uma estrutura profissional com 4 seções nomeadas, exemplos de template para cada caso de uso, e regras com numeração. |
+| D4 — Pensamento Crítico | 3 | A qualidade do pensamento crítico é o ponto mais forte do entregável. O participante não apenas verificou se as respostas estavam corretas — identificou duas **fragilidades latentes** que não geraram falhas na rodada de teste mas representam riscos em produção: (1) a Regra 5 não instruía varredura de todos os chunks antes de responder; (2) a instrução de informação parcial não vedava estimativas disfarçadas. A nota metodológica ao final da análise ("a ausência de falhas nesta rodada não implica robustez garantida do sistema") revela julgamento técnico independente e maduro. As correções introduzidas na v2 são precisas e cirúrgicas — alteram exatamente o trecho que endereça cada fragilidade, sem reescrever o que estava funcionando. |
+| D5 — Aplicabilidade ao Projeto | 3 | O system prompt referencia entidades reais do cenário: POL-001 seção 3.2, SLA-2024, PROC-042-v2, ramal 4500, Gestão de Riscos, Microsoft Teams, tiers Gold/Silver/Standard, multiplicadores regionais, Resolução ANTT nº 5.947/2021. A estrutura de contexto usa os dados reais do cenário (3 chunks × 200 tokens, histórico de sessão Teams). O documento de orçamento de tokens é calculado sobre o system prompt real, não sobre um exemplo genérico. As perguntas de teste escolhidas são representativas do uso real do assistente: exceção de política, lookup de SLA por tier, e cálculo de frete com dado ausente — cada uma testando uma regra diferente do system prompt. |
+
+**Score do exercício: 3.0**
+
+---
+
+### Verificação de Armadilhas
+
+**Armadilha obrigatória — Pergunta "prazo de devolução para carga perigosa":**
+
+✅ **Identificada e tratada corretamente.** A resposta v1 declara na primeira frase: *"Cargas perigosas classificadas nas classes 1 a 6 da ANTT não são elegíveis para devolução pelo processo padrão — portanto, não há prazo de devolução aplicável por essa via."* A exceção foi declarada antes de qualquer detalhamento, atendendo à Regra 5. Fonte citada como POL-001, seção 3.2. A análise crítica do participante também verificou explicitamente esse ponto com o checklist estruturado ("Esta é a resposta correta — a exceção está explícita no Chunk A. Se a resposta mencionou '7 dias úteis' ou qualquer prazo sem antes declarar a exceção, isso é falha grave..."), demonstrando que o participante sabia o que estava verificando.
+
+---
+
+### Pontos Fortes
+
+1. **Ciclo de avaliação estruturado com prompt de checklist**: o participante não apenas pediu ao Claude "avalie as respostas" — construiu um prompt de avaliação com critérios binários (sim/não) para cada ponto verificável, incluindo a instrução explícita de identificar em qual regra do system prompt uma eventual falha se originaria. Isso transforma a avaliação em uma auditoria reproduzível, não uma opinião subjetiva.
+
+2. **Identificação de fragilidades latentes vs. falhas confirmadas**: a distinção entre "falha que ocorreu" e "superfície de risco que poderia ocorrer" revela maturidade técnica que vai além do exercício. A Fragilidade 2 (vedação de estimativas disfarçadas) é especialmente sutil — o model poderia ter respondido "o frete fica entre R$ X e R$ Y com os multiplicadores disponíveis" sem violar a letra da Regra 2, mas violando o espírito. O participante fechou essa brecha preventivamente.
+
+3. **Tabela comparativa v1 → v2 com diff preciso**: a entrega inclui uma tabela que documenta exatamente o que mudou entre versões, com o texto antigo e o texto novo lado a lado. Isso torna a iteração auditável — qualquer revisor pode verificar que as mudanças são precisas, cirúrgicas e motivadas pelas fragilidades identificadas, sem alterações desnecessárias no que estava correto.
+
+---
+
+### Pontos de Melhoria
+
+1. **Testes com v2 não cobrem casos novos**: as respostas v2 foram geradas para as mesmas 3 perguntas da v1. O ideal após uma iteração de system prompt seria testar pelo menos uma pergunta que exercite especificamente as mudanças introduzidas — por exemplo, uma pergunta com exceção enterrada em chunk secundário (para testar a nova instrução de varrer todos os chunks) ou uma pergunta onde fatores parciais estejam disponíveis e o risco de estimativa disfarçada seja real. Sugestão: acrescentar 1-2 perguntas adicionais na rodada de testes v2 que targeteiem as fragilidades corrigidas.
+
+2. **Estimativa de tokens do sistema prompt poderia ser validada instrumentalmente**: a tabela de estrutura de contexto apresenta estimativas baseadas na regra 0,75 palavras/token, o que é metodologicamente correto. No entanto, o participante poderia ter incluído uma linha de validação — por exemplo, contar as palavras de cada seção explicitamente ou usar a API de tokenização para confirmar os valores. Em produção, a diferença entre "~230 tokens" estimado e o valor real pode ser relevante para o orçamento. Sugestão: incluir contagem de palavras explícita por seção na próxima versão da tabela.
+
+3. **Ausência de teste para o caso de conflito entre chunks**: o system prompt tem uma instrução bem formulada para chunks conflitantes (Seção 3, "Conflito entre chunks"), mas nenhuma das 3 perguntas testadas exercita esse caminho. Uma pergunta com dois chunks apresentando valores contraditórios para o mesmo item testaria se essa instrução funciona na prática. Sugestão: incluir esse caso no conjunto de testes da v2 ou documentar explicitamente que o teste de conflito ficou para a próxima rodada.
+
+---
+
+### Classificação
+
+**Aprovado com distinção** (Score 3.0 / 3.0)
+
+### Tópicos da Trilha para Reforço
+
+Score máximo — nenhum tópico de reforço necessário. Como sugestão de aprofundamento voluntário: **testes adversariais de system prompts** (construção deliberada de prompts de usuário projetados para contornar guardrails), que complementaria naturalmente o raciocínio de "fragilidades latentes" já demonstrado neste exercício.

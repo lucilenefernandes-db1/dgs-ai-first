@@ -1,0 +1,73 @@
+## Avaliação das três respostas
+
+---
+
+### Resposta 1 — Prazo de devolução para carga perigosa
+
+**A resposta declarou que carga perigosa NÃO é elegível para devolução pelo processo padrão?**
+Sim. A exceção foi declarada na primeira frase, antes de qualquer outro detalhamento. Regra 5 cumprida.
+
+**A resposta mencionou o ramal 4500 e o setor de Gestão de Riscos?**
+Sim. Ambos foram citados com precisão.
+
+**A fonte foi citada como POL-001, seção 3.2?**
+Sim.
+
+Resultado: nenhuma falha identificada.
+
+---
+
+### Resposta 2 — SLA de resolução para cliente Gold
+
+**A resposta informou "até 24h úteis" para chamados gerais?**
+Sim.
+
+**A resposta diferenciou chamados gerais (24h úteis) de incidentes críticos (4h)?**
+Sim. Ambos os cenários foram cobertos.
+
+**A fonte foi citada como SLA-2024, seção 2?**
+Sim.
+
+Resultado: nenhuma falha identificada.
+
+---
+
+### Resposta 3 — Frete para 600kg para Manaus
+
+**A resposta identificou Manaus como região Norte com multiplicador 1,8?**
+Sim.
+
+**A resposta identificou 600kg na faixa 500kg–1.000kg com fator de peso 1,0?**
+Sim.
+
+**A resposta reconheceu a ausência do valor base e recusou apresentar valor final em reais?**
+Sim. A resposta apresentou apenas a fórmula parametrizada (Valor base × 1,8 × 1,0), declarou explicitamente a incompletude e orientou onde obter o dado ausente. Nenhum valor em reais foi calculado ou inferido. Regra 2 cumprida.
+
+**A fonte foi citada como PROC-042-v2, seção 2?**
+Sim.
+
+Resultado: nenhuma falha identificada.
+
+---
+
+## Consolidação final
+
+### Lista 1 — Falhas confirmadas
+
+Nenhuma falha confirmada nas três respostas. Todos os critérios verificados foram atendidos.
+
+### Lista 2 — Correções necessárias no system prompt
+
+Sem falhas de execução a corrigir por via de system prompt. No entanto, a avaliação expõe **duas fragilidades latentes** no system prompt — não falhas desta rodada, mas riscos que uma resposta futura poderia acionar:
+
+**Fragilidade 1 — Seção 2, Regra 5**
+O critério de "exceção cancela regra geral" está bem formulado, mas não instrui explicitamente o modelo a varrer todos os chunks antes de responder. Uma pergunta que pareça simples pode ter exceção em chunk não lido primeiro.
+Instrução a adicionar: *"Antes de formular qualquer resposta, leia a totalidade dos chunks fornecidos e identifique exceções em todos eles — não apenas no chunk mais imediatamente relevante."*
+
+**Fragilidade 2 — Seção 3, Informação parcial**
+A instrução orienta apresentar dados disponíveis e declarar incompletude, mas não veda explicitamente a apresentação de faixas estimadas ou valores aproximados, o que poderia ser explorado como brecha para inferência disfarçada.
+Instrução a adicionar: *"É vedada qualquer forma de estimativa, faixa de valor ou valor aproximado quando o dado base estiver ausente — ainda que os fatores multiplicadores estejam disponíveis."*
+
+---
+
+**Nota metodológica:** a ausência de falhas nesta rodada não implica robustez garantida do sistema. Os dois pontos acima representam superfícies de risco que devem ser fechadas preventivamente antes de implantação em produção.

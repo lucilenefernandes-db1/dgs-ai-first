@@ -1,0 +1,59 @@
+Agora tenho tudo que preciso para fazer a avaliação. Vou ler o documento final (DOCX) também para verificar o entregável.Tenho material suficiente para fazer uma avaliação completa e fundamentada. Vou redigir agora.
+
+---
+
+## Avaliação do Exercício 1.1
+
+### Resumo
+
+O participante produziu uma análise técnica de alta qualidade, específica ao domínio da NovaTech, com domínio conceitual sólido sobre tokens, orçamento de contexto, chunking e lost in the middle. A iteração com o Claude foi substantiva — o histórico evidencia múltiplas rodadas de revisão crítica que geraram melhorias concretas e verificáveis entre versões. O entregável final é acionável, referencia dados reais do projeto e demonstra julgamento técnico próprio na condução das revisões.
+
+---
+
+### Scores por Dimensão
+
+| Dimensão | Score | Justificativa |
+|----------|-------|---------------|
+| D1 — Domínio Conceitual | 3 | Todos os tópicos centrais estão presentes e aplicados com especificidade: tokens com cálculo detalhado por fonte e regra 0,75 palavras/token; orçamento de atenção com o "paradoxo da janela grande" (200 chunks teóricos vs. 20-30 práticos); lost in the middle com referência a Liu et al. 2023 e distinção Tipo A/B/C de queries; chunking justificado por coesão semântica por tipo de pergunta. O participante vai além do enunciado ao identificar, por conta própria, quatro riscos operacionais (governança de acesso, drift silencioso, cardinalidade de chunks, latência). |
+| D2 — Uso de Ferramentas | 3 | O histórico evidencia ao menos três rodadas de iteração documentadas: prompt inicial → v1 do documento; revisão crítica solicitada ao Claude ("atue como Tech Lead experiente") → lista de 5 problemas identificados → reescrita cirúrgica da Seção 2 com decomposição do overhead; revisão das Seções 3.2, 3.3 e 4.2. Os prompts são específicos e técnicos, não genéricos. O output foi avaliado criticamente — o participante não aceitou o v1 e conduziu o refinamento com instruções precisas ("substitua o fator de 60% por decomposição metodológica com estes quatro componentes"). |
+| D3 — Qualidade do Entregável | 3 | O documento final é completo, correto e utilizável por outro membro do time sem pedido de esclarecimento: cada tipo de fonte tem desafio + impacto + estratégia específicos; estimativa de tokens mostra memória de cálculo por fonte com intervalo de confiança (9,3M–10,5M); orçamento de contexto com decomposição dos componentes da janela; estratégia de chunking com três tipos de chunk calibrados por tipo de pergunta e exemplos concretos de formato; controle de versão documentado. A limitação de cálculo de frete exato foi corretamente reclassificada de "estratégia" para "limitação conhecida do design". |
+| D4 — Pensamento Crítico | 3 | O participante demonstra análise própria de forma clara. Na revisão, ele não apenas repassa o output ao Claude — formula cinco perguntas cirúrgicas, avalia as respostas ponto a ponto, e rejeita ou corrige argumentos específicos (ex: "o argumento de sessões longas está invertido — o problema não é esgotar a janela, é competição por atenção"). A identificação de que o fallback de frete era uma "admissão de falha" que reproduzia o problema original, e a correção do threshold de sumarização de tokens para turns, são exemplos de julgamento técnico que vai além de delegar à IA. |
+| D5 — Aplicabilidade ao Projeto | 3 | O documento é profundamente conectado ao projeto NovaTech: referencia 800 PDFs, 400 páginas wiki, 50 planilhas, 15+ colunas nas tabelas de frete, integração Teams, 45 atendentes, API REST do Confluence, rate limiting de 10 req/s da Confluence Cloud. Os exemplos de chunk usam dados realistas do domínio (Região: Sul, Perfil: Gold, prazo em dias úteis). O risco de latência é contextualizado em "atendentes respondendo clientes em tempo real no Teams", não em abstrato. |
+
+**Score do exercício: 3,0**
+
+---
+
+### Verificação de Armadilhas
+
+O Exercício 1.1 não possui armadilha intencional declarada nos critérios de avaliação (essa figura aparece no Exercício 1.2, com a pergunta sobre prazo de devolução para carga perigosa). Nenhuma verificação de armadilha é aplicável aqui.
+
+---
+
+### Pontos Fortes
+
+**Iteração de qualidade verificável.** O histórico mostra a transição explícita de estimativas sem base (60% de overhead "inventado", 30 palavras/linha serializada) para estimativas metodologicamente fundamentadas (decomposição em 4 componentes, 55 palavras/linha com exemplo real). A diferença entre v1 e v2 é substantiva e rastreável.
+
+**Distinção de estratégia por tipo de query.** A separação entre queries Tipo A (lookup, 3-5 chunks com score de corte + instrução anti-interpolação) e Tipos B/C (15-25 chunks com posicionamento nas extremidades) vai além do pedido no enunciado e demonstra compreensão de que a solução para lost in the middle não é posicionamento melhor, mas separação de estratégia.
+
+**Riscos operacionais identificados além do escopo explícito.** Governança de acesso (documentos confidenciais misturados na base), drift silencioso (versão desatualizada respondida com alta confiança), cardinalidade de chunks em tabelas de frete (precision problem, não apenas recall) e latência (5-15s incompatível com atendimento em tempo real) são riscos de produção que um desenvolvedor menos experiente omite — e o participante os identificou e incorporou ao entregável.
+
+---
+
+### Pontos de Melhoria
+
+**Custo de embedding não entra no entregável final.** O histórico mostra que o Claude identificou o custo de ~US$0,60–1,50 para embedding inicial, mas esse dado não aparece na análise final. Para uma análise de viabilidade técnica apresentada ao cliente, a omissão de custo de setup é uma lacuna — especialmente porque a reindexação mensal de 50 planilhas gera custo recorrente. Sugestão: incluir seção de estimativa de custos operacionais (embedding, APIs de visão, reindexação).
+
+**Validação da eficácia do score de relevância no prompt ficou como hipótese, mas sem plano de teste.** O participante corretamente reclassificou essa técnica de "mitigação confirmada" para "hipótese a ser validada". Mas o documento não especifica como validar — quais métricas, qual tamanho de amostra, quem executa. Sugestão: adicionar ao spike técnico (Seção 6, mencionada no documento) os critérios de aceitação para essa hipótese.
+
+**Reindexação das planilhas e consistência do Vector Store durante a atualização.** O histórico mostra que o Claude identificou o risco de chunks de versões mistas durante a reindexação — atendentes fazendo queries enquanto 50 planilhas são reindexadas podem receber metade do índice do mês anterior. O documento menciona "job agendado com controle de versão" mas não detalha a estratégia de consistência (blue-green index, lock durante reindexação, etc.). Para um Tech Lead, essa lacuna precisa ser fechada antes da apresentação ao cliente.
+
+---
+
+### Classificação
+
+**Aprovado com distinção** (score 3,0)
+
+### Tópicos da Trilha para Reforço
+
+Score máximo atingido — nenhum tópico requer reforço neste exercício. Para continuidade, recomenda-se avançar para os Exercícios 1.2 e 1.3, onde o desafio se desloca para engenharia de prompt (system prompt, contexto estático vs. dinâmico) e construção de pipeline funcional com evidência de Copilot.

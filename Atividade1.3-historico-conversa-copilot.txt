@@ -1,0 +1,93 @@
+##PROMPT
+Script de ingestão de documentos NovaTech para ChromaDB
+Estratégia de chunking: por seção semântica, 300-600 tokens, overlap 50 tokens
+Importar dependências: chromadb, sentence_transformers, os, re
+Configurar o cliente ChromaDB local (persistente em ./chroma_db)
+Criar ou obter a collection chamada "novatech_docs"
+Carregar o modelo de embeddings all-MiniLM-L6-v2
+Função: carregar_documentos(pasta)
+Lê todos os arquivos .md da pasta e retorna lista de dicts
+com campos: nome_arquivo, conteudo
+Função: dividir_em_chunks(conteudo, nome_arquivo)
+Divide o texto em chunks por seção (detecta ## e ### como quebras)
+Aplica overlap de 50 tokens entre chunks adjacentes
+Retorna lista de dicts com: texto, fonte, secao, indice
+Função: gerar_e_indexar(chunks)
+Para cada chunk: gera embedding com sentence-transformers
+Armazena no ChromaDB com metadados: fonte, secao, indice
+Executar: carregar → dividir → indexar todos os documentos
+Ao final, imprimir: total de chunks indexados por documento
+
+Read [](file:///c%3A/dgs-ai-first/novatech-rag/ingestao.py)
+
+Read [](file:///c%3A/dgs-ai-first/novatech-rag/docs/FAQ-atendimento.md#1-1), lines 1 to 30
+
+Read [](file:///c%3A/dgs-ai-first/novatech-rag/docs/POL-001-politica-devolucao.md#1-1), lines 1 to 20
+
+Replacing 1 lines with 164 lines in [](file:///c%3A/dgs-ai-first/novatech-rag/ingestao.py)
+
+
+```
+
+```
+
+
+Ran terminal command: python ingestao.py
+Completed with input: python ingestao.py
+
+Ran terminal command: pip install chromadb sentence-transformers -q
+
+Ran terminal command: import chromadb; import sentence_transformers; print('OK')
+Completed with input: import chromadb; import sentence_transformers; print('OK')
+
+Ran terminal command: Get-Command python | Select-Object -ExpandProperty Source; python --version
+
+Ran terminal command: Get-ChildItem "C:\Python*" -Directory | ForEach-Object { $p = "$($_.FullName)\python.exe"; if (Test-Path $p) { & $p -c "import chromadb; print($_.Name, 'OK')" 2>&1 } }
+
+Ran terminal command: Get-ChildItem "C:\Python*" -Directory | ForEach-Object { $v = $_.Name; $p = "$($_.FullName)\python.exe"; if (Test-Path $p) { $r = & $p -c "import chromadb; print('OK')" 2>&1; Write-Host "$v`: $r" } }
+
+Ran terminal command: where.exe python; py -0
+
+Ran terminal command: Get-ChildItem "$env:LOCALAPPDATA\Programs\Python" -Directory -ErrorAction SilentlyContinue | ForEach-Object { $v = $_.Name; $p = "$($_.FullName)\python.exe"; if (Test-Path $p) { $r = & $p -c "import chromadb; print('OK')" 2>&1; Write-Host "$v`: $r" } }
+Completed with input: Get-ChildItem "$env:LOCALAPPDATA\Programs\Python" -Directory -ErrorAction SilentlyContinue | ForEach-Object { $v = $_.Name; $p = "$($_.FullName)\python.exe"; if (Test-Path $p) { $r = & $p -c "import chromadb; print('OK')" 2>&1; Write-Host "$v`: $r" } }
+
+Ran terminal command: conda info --envs 2>&1; Get-Command conda -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+Completed with input: conda info --envs 2>&1; Get-Command conda -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+
+Ran terminal command: Get-ChildItem "C:\dgs-ai-first\novatech-rag" -Name; Test-Path ".venv\Scripts\python.exe"; Test-Path "venv\Scripts\python.exe"
+
+Ran terminal command: .\venv\Scripts\python.exe ingestao.py
+
+Checked terminal output
+
+O modelo `all-MiniLM-L6-v2` está sendo baixado do HuggingFace. Aguardando conclusão... 
+
+Checked terminal output
+
+
+python ingestao.py
+import chromadb; import sentence_transformers; print('OK')
+Get-ChildItem "$env:LOCALAPPDATA\Programs\Python" -Directory -ErrorAction SilentlyContinue | ForEach-Object { $v = $_.Name; $p = "$($_.FullName)\python.exe"; if (Test-Path $p) { $r = & $p -c "import chromadb; print('OK')" 2>&1; Write-Host "$v`: $r" } }
+conda info --envs 2>&1; Get-Command conda -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+.\venv\Scripts\python.exe ingestao.py
+O modelo all-MiniLM-L6-v2 está sendo baixado do HuggingFace. Aguardando conclusão...
+
+Baixando o modelo (90MB). Aguardando conclusão...
+
+O modelo ainda está sendo baixado (90MB). Vou aguardar a notificação automática de conclusão do terminal em vez de continuar verificando manualmente.
+
+Enquanto isso, o script ingestao.py está pronto. Aqui está um resumo do que foi implementado:
+
+Estrutura do script:
+
+carregar_documentos(pasta) — lê todos os .md de docs, retorna lista com nome_arquivo e conteudo.
+
+dividir_em_chunks(conteudo, nome_arquivo) — usa re.split(r'(?=^#{2,3} )') para quebrar nos cabeçalhos ##/###. Seções ≤ 600 tokens viram um chunk direto; seções maiores são subdivididas com overlap de 50 tokens via _subdividir_com_overlap(). A estimativa usa 1 token ≈ 4 caracteres.
+
+gerar_e_indexar(chunks) — codifica todos os chunks em lote com modelo.encode() e persiste no ChromaDB via collection.upsert(). IDs no formato {arquivo}__idx{n} garantem idempotência ao re-executar.
+
+ChromaDB configurado como PersistentClient em chroma_db, collection novatech_docs com espaço cosseno.
+
+Execução principal itera os documentos, chama as três funções em sequência e imprime o total de chunks por arquivo + total geral.
+
+Observação: o script usa o virtualenv do projeto (python.exe), não o Python 3.14 do sistema que não tem as dependências instaladas.

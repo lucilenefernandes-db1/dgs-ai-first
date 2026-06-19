@@ -1,0 +1,74 @@
+Vou ler os arquivos de skill de avaliação do projeto antes de avaliar.Não há skills de avaliação específicas nos arquivos do projeto — apenas os anexos e o enunciado. Vou avaliar com base nos critérios explícitos do enunciado (exercício Dev 2.1), nos documentos entregues pelo participante e nas regras de avaliação fornecidas no prompt.
+
+---
+
+## Avaliação do Exercício Dev 2.1 — Configuração e uso real de MCP servers no projeto
+
+### Resumo
+
+O participante entregou um conjunto notavelmente completo e bem fundamentado: mapeamento de necessidades com justificativas de least privilege, `mcp.json` funcional com separação inteligente de instâncias, evidência real de execução dos servers (prints de terminal + transcrição de sessão), análise de riscos com 4 riscos identificados e mitigações acionáveis, e uma decisão de design que documenta explicitamente a limitação da abordagem read-only. A qualidade dos artefatos escritos é alta e a maturidade crítica é evidente. O único ponto de atenção é que o exercício menciona GitHub Copilot como ferramenta a utilizar — e não há evidência de uso do Copilot; toda a execução foi feita via Claude com MCP servers. Dependendo de como a banca lida com essa substituição de ferramenta, isso pode afetar D2.
+
+---
+
+### Scores por Dimensão
+
+| Dimensão | Score | Justificativa |
+|----------|-------|---------------|
+| D1 — Domínio Conceitual | 3 | O participante demonstra compreensão sólida de MCP: distingue corretamente tools vs resources, articula least privilege com justificativas por server (não genéricas), entende que o filesystem server não possui flag nativa de read-only, aplica o conceito de instâncias separadas como estratégia de sinalização de intenção, e explica o server `memory` como grafo persistente para linguagem ubíqua — uso preciso e contextualizado do protocolo. |
+| D2 — Uso de Ferramentas | 2 | Há evidência real e forte de uso dos MCP servers: prints de terminal mostrando `Secure MCP Filesystem Server running on stdio` e `Knowledge Graph MCP Server running on stdio`, além de `uvx mcp-server-git --repository "."` instalando 35 pacotes; a transcrição da sessão mostra o agente lendo `docs/novatech/`, recuperando chunk do corpus com citação exata (Chunk POL-001-A) e consultando o histórico git. Os servers funcionaram de fato. O ponto que impede score 3: o enunciado especifica "GitHub Copilot" como ferramenta a utilizar e não há nenhuma evidência de seu uso — toda execução foi via Claude com MCP. Isso não é um erro grave (o resultado é equivalente ou superior), mas é um desvio do enunciado que deve ser registrado. |
+| D3 — Qualidade do Entregável | 3 | O `mcp.json` é funcional, correto e aplica separação em 3 instâncias filesystem com escopos mínimos. O `README.md` é completo, com tabela de índice, atributos por server, controle de escrita, política de alterações — tudo prescritivo e operacional. O documento de mapeamento (Tarefa 1) tem tabela + justificativas de least privilege por server, cobrindo todos os 5 servers. A análise de riscos (Tarefa 4) tem 4 riscos com impacto/probabilidade/mitigação implementada/mitigação adicional — acima do mínimo exigido (2 riscos). A decisão de design documenta a limitação técnica da abordagem. Nenhum artefato é vago ou narrativo demais. |
+| D4 — Pensamento Crítico | 3 | O participante vai além do exigido em pelo menos três pontos: (1) identifica explicitamente que o server filesystem *não impõe read-only tecnicamente* e documenta isso como limitação conhecida — em vez de afirmar que a config é segura; (2) propõe evolução futura concreta para produção (Azure Blob com RBAC, server MCP customizado com logging de auditoria); (3) identifica o Risco 4 (grafo de memória com decisões desatualizadas) de forma proativa, sem ter sido solicitado e com mitigação específica (atualização sincronizada na mesma PR da ADR). A análise de riscos distingue ambiente local vs produção com clareza. |
+| D5 — Aplicabilidade ao Projeto | 3 | Os artefatos são consistentemente contextualizados ao NovaTech: os escopos do filesystem referenciam as pastas reais do Anexo C (`./docs/novatech`, `./data/retrieval-corpus`, `./src`, `./specs`, `./skills`); a transcrição usa o corpus de chunks do Anexo B para validar o retrieval; o commit inicial referencia o starter repo do Anexo D; a decisão de design menciona explicitamente o contexto de "repositório local, time de 6 pessoas, sem dado sensível em produção"; os riscos citam exemplos de domínio (POL-001, multiplicadores regionais, tiers Gold/Silver/Standard). As ADRs do cenário 1 (ADR-0002, ADR-0003) são citadas no README. |
+
+**Score do exercício: 2,8**
+
+---
+
+### Verificação de Artefatos Machine-Readable
+
+Este exercício não exige AGENTS.md ou skill — mas o `README.md` do `.mcp/` funciona como documento normativo e é avaliável sob a mesma lente.
+
+**O que está prescritivo e operacional:**
+- A tabela de índice com permissão por server é diretamente consumível por qualquer membro do time.
+- A seção "Política de alterações" lista 4 regras numeradas com critérios concretos (ex: "revisão de escopo pelo Tech Lead: confirmar que nenhuma pasta sensível foi adicionada").
+- A restrição crítica do server `mcp-learning-everything` está em negrito com instrução explícita de remoção após onboarding.
+- As justificativas de least privilege seguem o padrão "Por que esse server / Por que o escopo é mínimo / Risco de escopo mais amplo" — útil para revisão de PR.
+
+**O que poderia ser mais prescritivo:**
+- A seção de controle de escrita do `memory` diz "apenas papéis com autoridade [...] adicionam entidades" mas não define uma lista nominal de quem pode escrever em cada sessão — um agente não saberia operacionalmente quem autoriza.
+- O README não define o formato esperado de entidades no grafo de memória (ex: template de nó para linguagem ubíqua), o que tornaria o `memory` server mais governado.
+
+---
+
+### Pontos Fortes
+
+1. **Separação de instâncias como estratégia de sinalização** — a decisão de usar `filesystem-docs-readonly` e `filesystem-corpus-readonly` como instâncias nomeadas separadas, em vez de uma única instância com política documentada, é uma escolha de design bem fundamentada. O participante documenta a limitação (não é read-only técnico) e justifica por que a abordagem ainda é adequada para o contexto.
+
+2. **Evidência de execução real e abrangente** — a transcrição mostra os três casos exigidos pelo enunciado: leitura de documento (`docs/novatech/`), recuperação de chunk com citação exata do corpus (`Chunk POL-001-A`) e consulta ao histórico git (commit hash, autor, data, mensagem). A demonstração vai além do mínimo — o agente também responde corretamente sobre exceções ao prazo de devolução, mostrando que o retrieval funciona de ponta a ponta.
+
+3. **Análise de riscos com profundidade e honestidade** — 4 riscos identificados (2 além do mínimo), cada um com impacto, probabilidade, mitigação implementada e mitigação adicional recomendada. O participante distingue o que já foi feito do que ainda precisa ser feito, e separa claramente os riscos do ambiente local dos riscos que persistiriam em produção.
+
+---
+
+### Pontos de Melhoria
+
+1. **Ausência de evidência de uso do GitHub Copilot** — o enunciado especifica Copilot como ferramenta para a Tarefa 2 (escrever o `.mcp/mcp.json`). Não há nenhum print, export ou menção de uso do Copilot. Em exercícios futuros que especificam uma ferramenta, incluir evidência explícita — mesmo que o resultado seja equivalente — é necessário para a avaliação da dimensão de ferramentas. Se a substituição foi intencional (ex: Copilot não disponível), documentar o motivo.
+
+2. **Política de escrita no grafo `memory` sem operacionalização** — o README define quem pode escrever no grafo por papel (Tech Lead, PS, Delivery Manager), mas não há formato de entidade, template de nó, ou processo de revisão de entidades existentes. Adicionar um exemplo de entidade bem formada (ex: `{ name: "frete-especial", type: "termo-ubíquo", definition: "carga acima de 500kg", source: "PROC-042-v2" }`) tornaria o server `memory` governado de forma concreta, não apenas declarada.
+
+3. **O server `git` aponta para raiz (`.`) — justificativa poderia ser mais robusta** — o participante justifica que o git server precisa de escopo global porque "o histórico é global ao repositório". Isso é correto, mas vale mencionar explicitamente que isso expõe metadados de arquivos que não estão no escopo do filesystem (ex: `git show` pode exibir conteúdo de `.env` se esse arquivo já foi commitado). A mitigação (`.gitignore` + `.env.example`) está correta mas está no Risco 1, não na justificativa do git server — um leitor poderia não conectar os dois.
+
+---
+
+### Classificação
+
+**Aprovado com distinção (2,8)**
+
+---
+
+### Tópicos da Trilha para Reforço
+
+Score acima de 2,5 — não há tópicos críticos para reforço. Como aprimoramento opcional:
+
+- **Governança de grafo de memória em MCP**: explorar como estruturar entidades do server `memory` de forma auditável e versionável (ex: espelhar entidades críticas como ADRs para garantir consistência).
+- **MCP com controle de acesso real**: pesquisar servers MCP com suporte a permissões granulares por operação (read vs write por path) para quando o projeto evoluir para staging/produção.

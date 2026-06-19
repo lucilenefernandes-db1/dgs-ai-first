@@ -1,0 +1,70 @@
+## Avaliação do Exercício Dev 2.2 — Implementação de spec com Spec Driven Development
+
+### Resumo
+
+O participante entregou um conjunto excepcionalmente completo e maduro: um `tasks.md` com 10 tasks atômicas e critérios de aceite verificáveis, código funcional gerado com o Copilot (5 arquivos TypeScript sem erros de compilação), e uma revisão crítica que identifica 3 problemas reais com diagnóstico preciso, código corrigido e proposta de evolução do AGENTS.md. A integração entre os três artefatos é coesa — o código entregue já reflete as correções identificadas na revisão, o que demonstra que o ciclo geração → revisão → ajuste foi executado de fato. É um dos entregáveis mais completos que um exercício Dev 2.2 pode produzir.
+
+---
+
+### Scores por Dimensão
+
+| Dimensão | Score | Justificativa |
+|----------|-------|---------------|
+| D1 — Domínio Conceitual | 3 | O participante demonstra compreensão precisa de SDD em múltiplos níveis: as tasks são genuinamente atômicas (cada uma com um único artefato de saída), os critérios de aceite seguem asserções verificáveis (não "funcionar corretamente"), e o grafo de dependências entre tasks reflete a lógica real do pipeline (QE-001 como base, QE-002/004/005 em paralelo, QE-009 como integradora). A justificativa da decomposição na evidência do Claude explica conscientemente as escolhas (handler em dois momentos — stub e integração real — para permitir desenvolvimento paralelo). |
+| D2 — Uso de Ferramentas | 3 | Há evidência real e detalhada de uso do Copilot: a transcrição mostra o Copilot lendo o `tsconfig.json` e `package.json` antes de gerar, criando 6 todos rastreáveis, editando os 5 arquivos em sequência com contagem de linhas, e confirmando ausência de erros TypeScript. O uso do Claude para gerar o `tasks.md` também está documentado com o prompt completo e a resposta. O exercício pede as duas ferramentas (Claude para tasks, Copilot para implementação) — ambas foram usadas com evidência real. Não há iteração v1→v2 explícita, mas o ciclo geração → revisão crítica → código corrigido é equivalente e está documentado. |
+| D3 — Qualidade do Entregável | 3 | Os três artefatos são completos e corretos: (1) `tasks.md` com 10 tasks, estimativas, dependências, caminhos exatos e critérios de aceite que usam valores literais e comportamentos em falha — nível de especificidade que permite automação; (2) código TypeScript funcional nos 5 arquivos exigidos, com padrões do plan respeitados (pino, Zod, Azure Functions v4, `crypto.randomUUID`); (3) revisão crítica com before/after de código real para os 3 problemas, não apenas descrição textual. O `handler.ts` entregue já incorpora as correções da revisão (try/catch em `request.json()`, campo `status` no finally), evidenciando que a revisão foi aplicada. |
+| D4 — Pensamento Crítico | 3 | A revisão crítica é o ponto alto do entregável. Os 3 problemas identificados são reais e não triviais: o Problema 1 (ausência de `status` no log do `finally`) exige entender a topologia de controle de fluxo do handler; o Problema 2 (ausência de try/catch em `request.json()`) exige conhecer o comportamento do runtime Azure Functions com payloads malformados; o Problema 3 (mensagens Zod padrão vs customizadas) exige perceber que os critérios de aceite especificam mensagens literais que o Copilot não via. A seção "O que o Copilot fez bem" demonstra equilíbrio — o participante não inventa problemas nem ignora acertos. A proposta de evoluir o AGENTS.md com 3 regras derivadas dos problemas fecha o ciclo de aprendizado de forma madura. |
+| D5 — Aplicabilidade ao Projeto | 3 | As ADRs do cenário 1 estão incorporadas de forma concreta, não decorativa: TASK-QE-001 cita ADR-0002 para o limite de 3 turnos no `conversationHistory`; TASK-QE-005 e TASK-QE-006 citam ADR-0003 para o comportamento com documentos contraditórios (priorizar versão mais recente, incluir ambos no prompt); TASK-QE-006 usa os valores exatos do context budget (4K system + 8K chunks). Os tipos `SourceDocument` com campo `version` são diretamente rastreáveis à ADR-0003 de tratamento de documentos contraditórios. A evidência do Claude menciona explicitamente o Anexo B para fixtures de testes em QE-010. |
+
+**Score do exercício: 3,0**
+
+---
+
+### Verificação de Artefatos Machine-Readable
+
+Este exercício não produz AGENTS.md ou skill diretamente, mas o `tasks.md` funciona como artefato prescritivo para agentes e merece análise equivalente.
+
+**O que está prescritivo e operacional:**
+- Os critérios de aceite usam asserções com valores literais: `"retorna HTTP 400 com body { error: 'question is required' }"`, `"retorna exatamente 5 RetrievedChunk[]"`, `"o intervalo entre tentativas segue exponential backoff: 1s, 2s, 4s (±jitter)"` — um agente consegue implementar e um teste consegue verificar sem ambiguidade.
+- Os caminhos de arquivo são absolutos dentro do repositório (`src/functions/query/handler.ts`), não genéricos.
+- O grafo de dependências é explícito com IDs, permitindo automação de sequenciamento.
+- A nota de atenção em QE-010 (sugestão de quebrar em dois arquivos) demonstra que o participante pensa no ciclo de vida das tasks além da geração inicial.
+
+**O que poderia ser mais prescritivo:**
+- TASK-QE-003 menciona "retorna HTTP 415 quando Content-Type está ausente ou incorreto", mas o Azure Functions v4 trata Content-Type de forma diferente de um servidor HTTP puro — o critério poderia especificar se o comportamento é do runtime ou do handler. Isso é uma ambiguidade menor.
+- O campo `conversationHistory` em TASK-QE-001 especifica "máx. 3 turnos, conforme ADR-0002", mas o schema Zod no `validator.ts` não implementa esse limite máximo — o array é `optional()` sem `.max(3)`. Este é o único gap entre tasks e código entregue.
+
+---
+
+### Pontos Fortes
+
+1. **Ciclo completo e coeso** — o entregável cobre as três tarefas do exercício (tasks.md → implementação com Copilot → revisão crítica) e os artefatos são internamente consistentes: o código entregue já reflete as correções da revisão, o que prova que o ciclo foi executado e não apenas documentado.
+
+2. **Critérios de aceite com cobertura de comportamento em falha** — além dos happy paths, cada task especifica comportamentos em erro com valores concretos (HTTP 502 para erros de serviço, retry limits, mensagens literais). Isso é incomum e valioso: permite que a suíte de testes seja derivada diretamente do tasks.md sem interpretação adicional.
+
+3. **Revisão crítica como feedback estrutural** — ao propor três adições ao AGENTS.md derivadas dos problemas encontrados, o participante fecha o loop de melhoria contínua: os problemas que o Copilot gerou hoje não deverão se repetir no próximo arquivo gerado. Isso demonstra visão de time, não apenas visão de tarefa.
+
+---
+
+### Pontos de Melhoria
+
+1. **Gap entre TASK-QE-001 e o schema Zod entregue** — a task especifica `conversationHistory` com máximo de 3 turnos (ADR-0002), mas o `QueryRequestSchema` no `validator.ts` não implementa `.max(3)` no array. Em um code review real, isso seria bloqueante porque um critério de aceite formalmente definido não está coberto. Sugestão: adicionar `.max(3, { message: 'conversationHistory must not exceed 3 turns' })` ao schema e incluir critério de aceite correspondente em TASK-QE-002.
+
+2. **Ausência de iteração documentada no Copilot** — a evidência mostra que o Copilot gerou os arquivos corretamente na primeira tentativa. A revisão crítica documenta os problemas, mas não mostra uma segunda rodada com o Copilot após o ajuste do prompt ou do AGENTS.md. O exercício pede que o participante "revise criticamente e identifique pontos de ajuste" — o próximo passo natural seria demonstrar que adicionar as regras ao AGENTS.md muda o output. Em exercícios futuros, vale incluir essa segunda rodada como evidência.
+
+3. **TASK-QE-008 (`response-builder.ts`) sem teste de tipo para `ResponseBuildError`** — a task menciona `ResponseBuildError` como erro específico, mas esse tipo não está definido em `errors.ts`. É uma inconsistência menor que um agente implementando QE-008 encontraria sem saber como resolver. Sugestão: adicionar `ResponseBuildError extends AppError` ao `errors.ts` ou ajustar o critério de aceite para usar `ValidationError` (que já existe e cobre o caso de schema inválido).
+
+---
+
+### Classificação
+
+**Aprovado com distinção (3,0)**
+
+---
+
+### Tópicos da Trilha para Reforço
+
+Score máximo — não há tópicos para reforço obrigatório. Como aprimoramento opcional para o próximo ciclo:
+
+- **SDD — rastreabilidade bidirecional**: explorar como manter sincronização automática entre critérios de aceite no `tasks.md` e os casos de teste correspondentes (ex: comentário `// TASK-QE-002` nos testes para rastreabilidade direta).
+- **Iteração de AGENTS.md com feedback real de Copilot**: praticar o ciclo de adicionar uma regra ao AGENTS.md, gerar o mesmo arquivo novamente com o Copilot e comparar os outputs — para desenvolver intuição sobre quais tipos de instrução o Copilot absorve e quais ignora.

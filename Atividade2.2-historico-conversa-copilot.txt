@@ -1,0 +1,147 @@
+Você vai me ajudar a implementar a TASK-QE-001 do projeto NovaTech Assistant.
+
+Contexto técnico:
+
+- TypeScript com strict mode
+
+- Azure Functions v4
+
+- Zod para validação
+
+- pino para logging (NUNCA console.log)
+
+- Toda resposta deve ter o campo `sourceDocuments` no JSON
+
+Crie os seguintes arquivos exatamente nos caminhos indicados:
+
+**`src/shared/types.ts`**
+
+Deve conter as interfaces:
+
+- `ConversationTurn` com campos `role: 'user' | 'assistant'` e `content: string`
+
+- `QueryRequest` com campo obrigatório `question: string` e opcional `conversationHistory: ConversationTurn[]`
+
+- `SourceDocument` com campos `documentId: string`, `section: string`, `version: string`
+
+- `RetrievedChunk` com campos `content: string`, `score: number`, `metadata: SourceDocument`
+
+- `QueryResponse` com campos obrigatórios `answer: string`, `sourceDocuments: SourceDocument[]`, `lowConfidence: boolean`
+
+**`src/shared/errors.ts`**
+
+Deve conter as classes:
+
+- `AppError` extendendo `Error` com campo `statusCode: number`
+
+- `ValidationError` extendendo `AppError` com `statusCode` fixo em 400
+
+- `EmbeddingError` extendendo `AppError` com `statusCode` fixo em 502
+
+- `SearchError` extendendo `AppError` com `statusCode` fixo em 502
+
+- `CompletionError` extendendo `AppError` com `statusCode` fixo em 502
+
+**`src/shared/logger.ts`**
+
+Deve conter:
+
+- Instância `pino` configurada com `level: 'info'` e `base: { service: 'novatech-assistant' }`
+
+- Export default da instância
+
+- Export nomeado `createRequestLogger` que recebe `requestId: string` e retorna logger filho com o requestId no contexto
+
+**`src/functions/query/validator.ts`**
+
+Deve conter:
+
+- Schema Zod `QueryRequestSchema` que valida `question` como string obrigatória, mínimo 1 char após trim, máximo 2000 chars
+
+- Schema Zod `QueryResponseSchema` que valida a estrutura de `QueryResponse`
+
+- Função `validateQueryRequest(body: unknown)` que retorna `QueryRequest` ou lança `ValidationError` com os detalhes do Zod
+
+- Os schemas Zod devem ser exportados além das funções
+
+**`src/functions/query/handler.ts`**
+
+Deve conter:
+
+- Handler Azure Functions v4 registrado com `app.http('queryEndpoint', { methods: ['POST'], authLevel: 'anonymous', handler: ... })`
+
+- O handler valida o body com `validateQueryRequest`
+
+- Retorna HTTP 400 com `{ error: string, details: ZodIssue[] }` se validação falhar
+
+- Retorna HTTP 200 com `QueryResponse` mockada (answer: "mock", sourceDocuments: [], lowConfidence: false) se validação passar
+
+- Loga cada requisição com pino incluindo os campos `requestId`, `questionLength` e `durationMs`
+
+- Usa `crypto.randomUUID()` para gerar `requestId`
+
+Created 6 todos
+
+Read [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/shared/types.ts)
+
+Read [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/shared/errors.ts)
+
+Read [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/shared/logger.ts)
+
+Read [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/functions/query/validator.ts)
+
+Read [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/functions/query/handler.ts)
+
+Read [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/package.json#1-1), lines 1 to 30
+
+Read [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/tsconfig.json)
+
+Starting: *Criar src/shared/types.ts* (2/6)
+
+Replacing 4 lines with 117 lines in [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/shared/types.ts), [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/shared/errors.ts), [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/shared/logger.ts), [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/functions/query/validator.ts)
+
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+
+Starting: *Criar src/functions/query/handler.ts* (6/6)
+
+Replacing 8 lines with 40 lines in [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/functions/query/handler.ts)
+
+
+```
+
+```
+
+
+Checked [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/shared/types.ts), [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/shared/errors.ts), [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/shared/logger.ts), [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/functions/query/validator.ts), [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/functions/query/handler.ts), no problems found
+
+Completed: *Criar src/functions/query/handler.ts* (6/6)
+
+Todos os 5 arquivos foram criados sem erros de TypeScript. Resumo do que foi implementado:
+
+**types.ts** — 5 interfaces: `ConversationTurn`, `QueryRequest`, `SourceDocument`, `RetrievedChunk`, `QueryResponse`.
+
+**errors.ts** — `AppError` (base), `ValidationError` (400 + `details: ZodIssue[]`), `EmbeddingError`, `SearchError`, `CompletionError` (502 cada). O `import type { ZodIssue }` é type-only, sem impacto em runtime.
+
+**logger.ts** — instância pino com `level: 'info'` e `base: { service: 'novatech-assistant' }`, export default + `createRequestLogger(requestId)`.
+
+**validator.ts** — `QueryRequestSchema` (trim + min(1) + max(2000)), `QueryResponseSchema`, `validateQueryRequest` que lança `ValidationError` com os issues do Zod.
+
+**handler.ts** — `app.http('queryEndpoint', { methods: ['POST'], authLevel: 'anonymous', ... })`. O `finally` garante o log com `requestId`, `questionLength` e `durationMs` em toda requisição (sucesso ou falha de validação). HTTP 400 retorna `{ error, details: ZodIssue[] }`, HTTP 200 retorna a `QueryResponse` mockada.
+
+Made changes.

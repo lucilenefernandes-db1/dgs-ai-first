@@ -1,0 +1,170 @@
+```markdown
+## Melhoria identificada no código — ingestao.py
+
+### Problema encontrado
+
+O código gerado pelo GitHub Copilot apresentou dois problemas:
+um de dependência de infraestrutura e um de metadados ausentes.
+
+---
+
+### Problema 1 — Dependência de download externo inviável
+
+O script original usava a biblioteca `sentence-transformers` para
+gerar embeddings, o que exigia o download do modelo
+`all-MiniLM-L6-v2` (90MB+) do Hugging Face durante a execução.
+Na prática, o download ficou travado por limitação de banda da
+conexão, tornando o script inutilizável no ambiente de desenvolvimento.
+
+**Solução adotada:**
+Substituição do `sentence-transformers` pelo gerador de embeddings
+embutido no próprio ChromaDB, que usa o mesmo modelo
+`all-MiniLM-L6-v2` em formato ONNX otimizado (79MB).
+
+**Código original (gerado pelo Copilot):**
+```python
+from sentence_transformers import SentenceTransformer
+
+modelo = SentenceTransformer("all-MiniLM-L6-v2")
+
+def gerar_e_indexar(chunks: list[dict]) -> None:
+    textos = [c["texto"] for c in chunks]
+    embeddings = modelo.encode(textos, show_progress_bar=False).tolist()
+
+    collection.upsert(
+        ids=ids,
+        embeddings=embeddings,
+        documents=textos,
+        metadatas=metadados,
+    )
+```
+
+**Código corrigido:**
+```python
+# sentence_transformers removido — ChromaDB usa embedding embutido
+
+def gerar_e_indexar(chunks: list[dict]) -> None:
+    textos = [c["texto"] for c in chunks]
+
+    # O ChromaDB gera os embeddings automaticamente com o modelo embutido
+    # Mesmo modelo all-MiniLM-L6-v2 em formato ONNX otimizado
+    collection.upsert(
+        ids=ids,
+        documents=textos,
+        metadatas=metadados,
+    )
+```
+
+---
+
+### Problema 2 — Metadados de versão e tipo de fonte ausentes
+
+O código original não incluía metadados de versão e tipo de fonte
+nos chunks indexados. Isso criava dois riscos diretos:
+
+**Risco 1 — Versões conflitantes sem distinção**
+Os documentos `PROC-042-frete-especial-v1.md` e
+`PROC-042-v2-frete-especial-revisado.md` eram indexados no mesmo
+collection sem nenhum metadado de versão. O retrieval poderia
+retornar o multiplicador 1.6 (v1) ou 1.8 (v2) para a mesma
+pergunta sobre a região Norte, sem que o assistente soubesse
+qual era a versão mais recente.
+
+**Risco 2 — Documento informal tratado como normativo**
+O `FAQ-atendimento.md` é um documento não validado pelo Compliance.
+Sem metadado de `tipo_fonte`, o assistente não tinha como
+diferenciar uma resposta baseada no FAQ de uma resposta baseada
+na POL-001 ou no SLA-2024.
+
+**Código original — metadados gerados:**
+```python
+metadados = [
+    {"fonte": c["fonte"], "secao": c["secao"], "indice": c["indice"]}
+    for c in chunks
+]
+```
+
+| Campo  | Exemplo                       |
+|--------|-------------------------------|
+| fonte  | PROC-042-frete-especial-v1.md |
+| secao  | Multiplicadores regionais     |
+| indice | 3                             |
+
+Nenhuma informação de versão ou confiabilidade da fonte.
+
+**Código corrigido — mapeamento e metadados enriquecidos:**
+```python
+METADADOS_ARQUIVO = {
+    "PROC-042-frete-especial-v1.md":          {"versao": "v1", "data_emissao": "2023-03-03", "tipo_fonte": "normativo"},
+    "PROC-042-v2-frete-especial-revisado.md": {"versao": "v2", "data_emissao": "2023-11-10", "tipo_fonte": "normativo"},
+    "POL-001-politica-devolucao.md":          {"versao": "v1", "data_emissao": "2024-01-15", "tipo_fonte": "normativo"},
+    "SLA-2024-tabela-sla-clientes.md":        {"versao": "v1", "data_emissao": "2024-01-02", "tipo_fonte": "normativo"},
+    "FAQ-atendimento.md":                     {"versao": "v1", "data_emissao": "2024-01-01", "tipo_fonte": "informal"},
+}
+
+for c in chunks:
+    extra = METADADOS_ARQUIVO.get(
+        c["fonte"],
+        {"versao": "desconhecida", "data_emissao": "", "tipo_fonte": "normativo"}
+    )
+    metadados.append({
+        "fonte":        c["fonte"],
+        "secao":        c["secao"],
+        "indice":       c["indice"],
+        "versao":       extra["versao"],
+        "data_emissao": extra["data_emissao"],
+        "tipo_fonte":   extra["tipo_fonte"],
+    })
+```
+
+**Metadados gerados após correção:**
+
+| Campo        | Exemplo v1                    | Exemplo v2                             |
+|--------------|-------------------------------|----------------------------------------|
+| fonte        | PROC-042-frete-especial-v1.md | PROC-042-v2-frete-especial-revisado.md |
+| secao        | Multiplicadores regionais     | Multiplicadores regionais              |
+| indice       | 3                             | 3                                      |
+| versao       | v1                            | v2                                     |
+| data_emissao | 2023-03-03                    | 2023-11-10                             |
+| tipo_fonte   | normativo                     | normativo                              |
+
+---
+
+### Resultado da execução após correções
+
+```
+FAQ-atendimento.md:                     11 chunks indexados
+POL-001-politica-devolucao.md:           9 chunks indexados
+PROC-042-frete-especial-v1.md:           6 chunks indexados
+PROC-042-v2-frete-especial-revisado.md:  7 chunks indexados
+SLA-2024-tabela-sla-clientes.md:         6 chunks indexados
+
+Total geral: 39 chunks indexados
+```
+
+---
+
+### Impacto das correções
+
+| Situação | Antes | Após |
+|----------|-------|------|
+| Download do modelo | Travado por 1h30 a 38 kB/s, inviável | Automático em 15 segundos via ChromaDB ONNX |
+| Pergunta sobre multiplicador do Norte | Pode retornar 1.6 (v1) ou 1.8 (v2) sem distinção | Metadado `data_emissao` permite priorizar v2 (2023-11-10) |
+| Resposta baseada no FAQ | Citada como fonte sem ressalva | Metadado `tipo_fonte: informal` permite sinalizar ao atendente |
+| Re-execução do script | upsert já evitava duplicatas | Mantido sem regressão |
+
+---
+
+### Lição aprendida
+
+O GitHub Copilot gerou corretamente a estrutura e a lógica do
+pipeline, mas não tem contexto sobre dois aspectos críticos:
+as restrições de infraestrutura do ambiente de desenvolvimento
+(conexão lenta, sem token HF) e os riscos de negócio específicos
+da NovaTech (versões conflitantes da PROC-042 e distinção entre
+documentos normativos e informais).
+
+A revisão humana do código gerado por IA é obrigatória para
+identificar lacunas que são invisíveis para o modelo mas críticas
+para o domínio e para o ambiente real de execução.
+```

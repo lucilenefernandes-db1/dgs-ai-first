@@ -1,0 +1,82 @@
+
+/
+Liste os arquivos disponíveis nas pastas que você tem acesso via MCP filesystem.
+
+21:32
+
+Usou 2 integrações, ferramentas carregadas
+Usou 2 integrações, ferramentas carregadas
+Aqui está o mapa completo do que está acessível via MCP filesystem:
+
+filesystem-docs-readonly (leitura apenas)
+
+docs/novatech/
+
+FAQ-atendimento.md
+POL-001-politica-devolucao.md
+PROC-042-frete-especial-v1.md
+PROC-042-v2-frete-especial-revisado.md
+SLA-2024-tabela-sla-clientes.md
+README.md
+data/retrieval-corpus/
+
+chunks-novatech.md
+README.md
+filesystem-src (leitura e escrita)
+
+src/ — 6 subpastas, todas vazias por enquanto:
+
+bot/, functions/, pipeline/, services/, shared/, web/
+specs/ — 5 subpastas (uma por módulo):
+
+feedback-api/, painel-web/, pipeline-ingestao/, query-endpoint/, teams-bot/
+skills/ — 3 subpastas (hierarquia Foundation → Domain → Artifact):
+
+foundation/, domain/, artifact/
+O starter repo está semeado conforme o Anexo C: a documentação da NovaTech (Anexo A) está em docs/novatech/, o corpus de chunks (Anexo B) está em data/retrieval-corpus/, e as pastas de código/specs/skills existem mas ainda estão vazias — prontas para os exercícios da Fase de Estruturação.
+
+Usando os arquivos em data/retrieval-corpus/, responda: qual é o prazo para solicitar devolução de mercadorias na NovaTech? Cite o chunk exato que embasou sua resposta.
+
+21:34
+
+Ferramentas carregadas, usou a integração filesystem-docs-readonly
+Ferramentas carregadas, usou a integração filesystem-docs-readonly
+Resposta com base no corpus de RAG (data/retrieval-corpus/chunks-novatech.md):
+
+O prazo para solicitar devolução de mercadorias na NovaTech é de 7 (sete) dias úteis contados a partir da data de recebimento confirmada no sistema de tracking. Sábados, domingos e feriados nacionais não entram na contagem.
+
+Chunk que embasou esta resposta:
+
+Chunk POL-001-A — POL-001, Seção 3.1 (Prazo geral)
+"O cliente pode solicitar a devolução de mercadorias em até 7 (sete) dias úteis após a data de recebimento confirmada no sistema de tracking. A contagem de dias úteis exclui sábados, domingos e feriados nacionais."
+
+Observações importantes que o assistente também deveria comunicar:
+
+O chunk POL-001-B, igualmente relevante para a pergunta, estabelece que esse prazo não se aplica a todas as cargas. Cargas perigosas (classes 1 a 6 da ANTT) não são elegíveis para devolução pelo processo padrão — independentemente do prazo. Para essas, o cliente deve contactar a Gestão de Riscos pelo ramal 4500.
+
+Adicionalmente, o chunk POL-001-D confirma: solicitações feitas após os 7 dias úteis não são elegíveis para devolução padrão e devem ser encaminhadas ao Comercial para negociação caso a caso.
+
+Usando o servidor git, mostre os últimos commits do repositório novatech-assistant.
+
+21:35
+
+Ferramentas carregadas, usou a integração git
+Ferramentas carregadas, usou a integração git
+O repositório tem apenas 1 commit até agora — o commit inicial do starter repo. Aqui estão os detalhes:
+
+Campo	Valor
+Hash	bbdd03a
+Autor	Trilha AI First <trilha@db1.local>
+Data	09/06/2026 às 18:13 UTC
+Mensagem	chore: starter repo (Anexo D) — estrutura + dados semeados dos Anexos A e B
+Isso é consistente com o que o Anexo C descreve: o repositório foi inicializado com git init, a estrutura de pastas foi criada e os dados dos Anexos A (documentação NovaTech em docs/novatech/) e B (corpus de chunks em data/retrieval-corpus/) foram semeados — mas nenhuma lógica de produção foi implementada ainda. A partir daqui é que os exercícios da Fase de Estruturação começam.
+
+
+
+
+
+
+
+
+
+

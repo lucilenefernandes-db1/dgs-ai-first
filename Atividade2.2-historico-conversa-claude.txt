@@ -1,0 +1,36 @@
+
+Você é um desenvolvedor sênior convertendo um plan.md em tasks atômicas para Spec Driven Development.  O plan.md do query endpoint é:  # Plan — Query Endpoint  ## Approach Azure Function HTTP trigger que: 1. Recebe pergunta do atendente via POST /api/query 2. Converte pergunta em embedding via Azure OpenAI 3. Busca top-5 chunks no Azure AI Search 4. Monta prompt com chunks + system prompt + pergunta    (respeitando context budget: ~4K system + ~8K chunks + pergunta) 5. Envia ao GPT-4o e retorna resposta com source_document  ## Technical Decisions - TypeScript com Azure Functions v4 - Zod para validação de input/output - Retry com exponential backoff para chamadas Azure - Structured logging com pino  ## Prior Decisions - Context budget: ~4K system + ~8K chunks (ADR-0002) - Documentos contraditórios: metadado de vigência, priorizar mais recente (ADR-0003) - System prompt versionado em /prompts/system-prompt.md  ## Dependencies - Azure AI Search index must be populated - System prompt must be finalized  ---  Converta este plan em um tasks.md completo. Para cada task, forneça:  - **ID**: formato TASK-QE-NNN (ex: TASK-QE-001) - **Título**: frase imperativa curta (ex: "Criar handler HTTP da Azure Function") - **Descrição**: o que precisa ser feito em 2-3 frases - **Critérios de aceite**: lista de verificações concretas e testáveis (mínimo 3 por task). Não use "funcionar corretamente" — use asserções verificáveis como "retorna HTTP 400 quando o campo question está ausente" - **Dependências**: IDs das tasks que precisam estar prontas antes (ou "nenhuma") - **Estimativa**: P (menos de 2h), M (2-4h), G (mais de 4h) - **Arquivo(s) a criar/editar**: caminho(s) exato(s) dentro de src/  Regras para tasks atômicas: - Cada task deve ter um único artefato de saída (um arquivo ou uma função bem delimitada) - Uma task não pode depender de outra que ainda não existe - Cada task deve ser testável de forma independente com mocks  A ordem sugerida de tasks deve seguir a sequência lógica de implementação do fluxo do plan. Gere todas as tasks necessárias para implementar o query endpoint completo.
+
+Mostrar mais
+17 de jun.
+
+Visualizou um arquivo, criou um arquivo, leu um arquivo
+Visualizou um arquivo, criou um arquivo, leu um arquivo
+O tasks.md está pronto com 10 tasks atômicas. Algumas decisões que vale destacar:
+
+Por que essa decomposição?
+
+A divisão segue a fronteira natural dos arquivos — cada task produz exatamente um módulo (embedding.ts, search.ts, etc.), o que torna o critério de "done" inequívoco. O handler foi quebrado em duas tasks (QE-003 com stubs, QE-009 integrando os reais) para que ele possa ser desenvolvido e testado em paralelo com os serviços.
+
+Sobre os critérios de aceite
+
+Três padrões foram usados de propósito: valor de retorno específico ("retorna HTTP 400 com body { error: 'question is required' }"), comportamento em falha ("lança EmbeddingError imediatamente, sem retry"), e invariante de negócio (chunks conflitantes de PROC-042-v1/v2 devem aparecer ambos no prompt, não o mais antigo descartado silenciosamente — derivado da ADR-0003).
+
+Dependências e paralelismo
+
+Após QE-001, quatro tasks ficam desbloqueadas em paralelo (QE-002, QE-004, QE-005, QE-006), o que permite dois devs trabalharem sem bloqueio mútuo até QE-009.
+
+Um ponto de atenção para review real
+
+QE-010 foi marcada como G porque testes de integração com fixtures realistas do domínio NovaTech (chunks do Anexo B, cenários de carga perigosa, documentos contraditórios) tendem a crescer. Se o time preferir, pode ser quebrada em query-handler-happy-path.test.ts (M) e query-handler-error-cases.test.ts (M).
+
+
+Tasks
+Documento · MD 
+
+
+
+
+
+
+

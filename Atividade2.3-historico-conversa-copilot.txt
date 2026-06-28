@@ -1,0 +1,100 @@
+Crie o arquivo skills/foundation/typescript-conventions.md para o projeto NovaTech Assistant.
+
+Este é um arquivo SKILL.md — um artefato estruturado que encapsula convenções e padrões que todo agente de IA (GitHub Copilot, Claude) deve seguir ao gerar código TypeScript neste projeto. É a skill Foundation mais importante: todas as outras skills dependem dela.
+
+O arquivo DEVE ter exatamente estas seções:
+
+## 1. Contexto
+Quando esta skill se aplica (frase-ativação) e por que existe.
+
+## 2. Regras prescritivas
+Lista de regras no formato DEVE / NÃO DEVE. Cada regra em uma linha. Inclua ao menos:
+- Uso de strict mode (sem implicit any, sem type assertions desnecessárias)
+- Convenção de imports (named exports preferidos, default export apenas para módulo principal)
+- Convenção de nomenclatura (interfaces com I prefix ou não, types vs interfaces, enums)
+- Uso de readonly em campos que não mudam
+- Tratamento de nullability (undefined vs null, Optional Chaining, Nullish Coalescing)
+- Proibição explícita de console.log (usar pino)
+- Uso de .js nas extensões de import (obrigatório para ESM no Azure Functions v4)
+
+## 3. Exemplos de código (DO / DON'T)
+Mínimo 4 pares DO/DON'T com código TypeScript real. Cada par deve mostrar um anti-padrão que o Copilot geraria sem esta skill vs o padrão correto do projeto. Use comentários explicando POR QUE o DON'T é errado neste projeto especificamente.
+
+Exemplos que DEVEM aparecer:
+- DO/DON'T: importar com .js vs sem extensão
+- DO/DON'T: usar pino vs console.log
+- DO/DON'T: readonly em interfaces vs campos mutáveis
+- DO/DON'T: type assertion segura vs casting com as
+
+## 4. Anti-padrões específicos de IA
+Lista de anti-padrões que o GitHub Copilot e Claude especificamente geram neste projeto sem esta skill. Para cada um: nome do anti-padrão, exemplo de código errado que a IA geraria, por que é um problema neste projeto.
+
+## 5. Dependências
+Outras skills que devem ser lidas junto com esta (ex: error-handling.md).
+
+O arquivo deve ser prescritivo — instruções que um agente segue, não descrição do que o projeto faz.
+
+Vou inspecionar o padrão dos arquivos de skills já existentes no repositório para manter a estrutura e o tom consistentes antes de criar a nova skill Foundation.
+
+Searched for files matching `**/skills/**/*.md`, 10 matches
+
+Searched for regex `# SKILL.md|## 1. Contexto|## 2. Regras prescritivas` (`**/skills/**/*.md`), no results
+
+Read [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/skills/foundation/error-handling.md)
+
+Encontrei que o arquivo já existe, mas está vazio. Vou checar o `tsconfig` e um par de arquivos do backend para alinhar as regras com o que o projeto realmente usa antes de escrever a skill.
+
+Read [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/package.json)
+
+Read [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/tsconfig.json)
+
+Read [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/shared/logger.ts)
+
+Read [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/src/functions/query/handler.ts)
+
+Já tenho o contexto suficiente do stack e do estilo do repositório. Agora vou escrever a skill completa no arquivo existente, mantendo exatamente as seções pedidas e alinhando as regras com `strict`, ESM e `pino`.
+
+Apply Patch
+
+A primeira tentativa falhou por formato do patch. Vou reaplicar a mesma alteração com o cabeçalho exigido pelo editor.
+
+Generating patch (171 lines) in [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/skills/foundation/typescript-conventions.md)
+
+
+```
+
+```
+A skill já foi escrita. Agora vou fazer uma validação curta do diff para confirmar que o arquivo ficou com as seções pedidas e sem conteúdo extra fora da estrutura.
+
+Read changed files in [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant)
+
+Vou pegar as linhas iniciais do arquivo para conseguir referenciar exatamente onde ficaram as seções principais, sem abrir mais a superfície do que o necessário.
+
+Read [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/skills/foundation/typescript-conventions.md)
+
+Criei a skill Foundation em typescript-conventions.md, com exatamente as 5 seções pedidas: contexto, regras prescritivas, exemplos DO/DON'T, anti-padrões específicos de IA e dependências.
+
+A regra principal ficou alinhada ao stack do projeto: `strict` mode, ESM com imports `.js`, `pino` no lugar de `console`, convenções de `readonly`, nullability e o padrão de exports. Também incluí exemplos reais para os quatro anti-padrões exigidos.
+
+Validei o conteúdo pelo diff do arquivo. Como é um artefato Markdown, não havia teste executável relevante para rodar.
+
+Made changes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

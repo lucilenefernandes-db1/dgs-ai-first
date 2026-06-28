@@ -1,0 +1,70 @@
+Preciso ler o enunciado do exercício 3.1 e o entregável do participante antes de avaliar.## Avaliação do Exercício Dev 3.1 — Structured Output e Verificações Determinísticas
+
+### Resumo
+
+O participante entregou um entregável excepcionalmente maduro: schema Zod correto com `.strict()`, dois guardrails implementados e funcionais, uma análise própria de 5 problemas antes do uso do Claude (com diagnóstico preciso de nível de risco), e um código final que já incorpora todas as correções identificadas. A comparação humano vs. Claude é honesta, mostrando divergências reais e explicando o que cada um viu de forma distinta. O entregável vai além do exigido pelo exercício (2 guardrails, code review rápido) sem perder qualidade no que foi pedido.
+
+---
+
+### Scores por Dimensão
+
+| Dimensão | Score | Justificativa |
+|----------|-------|---------------|
+| D1 — Domínio Conceitual | 3 | O participante demonstra compreensão precisa da distinção probabilístico vs. determinístico com um diagrama conceitual claro (`Prompt/RAG → reduz probabilidade / Guardrails → elimina classes conhecidas / Monitoramento humano → captura o restante`). Articula corretamente que structured output + validação Zod são determinísticos — não dependem do modelo — e que o guardrail léxico tem limites semânticos que apenas monitoramento humano cobre. Isso é exatamente o conceito de HITL aplicado corretamente. |
+| D2 — Uso de Ferramentas | 3 | A evidência de uso do Copilot está implícita no código gerado (o entregável referencia "código gerado pelo Copilot" e a análise discute problemas que o Copilot introduziu — `console.error`, lógica frágil no Guardrail 2, FALLBACK nulo). O Claude foi usado em segunda rodada com output documentado em detalhe. A sequência é correta: análise própria → uso do Claude → comparação honesta com divergências identificadas. A ausência de print/export da interação com o Copilot é o único ponto que impede score 3 pleno em evidência, mas o exercício 3.1 do Dev pede code review "com Claude" — o Copilot foi a ferramenta de geração, não de review, e está implícito. |
+| D3 — Qualidade do Entregável | 3 | O schema Zod tem os 3 campos obrigatórios (`answer`, `source_document`, `confidence_score`) com tipos corretos, mensagens customizadas e `.strict()` para rejeitar campos extras — acima do mínimo exigido. O `validateResponse` bloqueia de fato (retorna `{ success: false, data: FALLBACK_RESPONSE }` — não apenas loga). O Guardrail 2 detecta a combinação carga perigosa + devolução e bloqueia. O `FALLBACK_RESPONSE` está tipado como `AssistantResponse` com `source_document: ''`, compatível com o schema. O tipo de retorno usa discriminated union (`ValidationResult`). O `pino` com `redact: ['raw']` substitui o `console.error`. Todos os problemas identificados foram corrigidos no código final. |
+| D4 — Pensamento Crítico | 3 | O participante identifica 5 problemas por conta própria antes do Claude — incluindo dois que o Claude não identificou: (1) `console.error` expondo lógica interna de guardrails (problema de segurança operacional, não apenas AGENTS.md), e (2) tipo de retorno incompatível que força type narrowing manual nos consumers. O Problema 3 da análise própria vai além do Claude ao identificar também os falsos positivos (frases legítimas bloqueadas), não apenas os falsos negativos. A comparação na seção 5 é honesta sobre o que cada um viu — não há "concordamos em tudo". |
+| D5 — Aplicabilidade ao Projeto | 3 | O AGENTS.md é referenciado de forma concreta em 3 momentos: na classificação dos problemas ("Violação do AGENTS.md"), na justificativa do `pino` ("O AGENTS.md define pino como logger padrão"), e nas correções aplicadas (coluna "Por quê"). Os termos do domínio NovaTech estão incorporados no guardrail (`dangerousTerms` inclui "carga perigosa", "carga classe", "explosivo", "inflamável", "corrosivo" — coerentes com as classes 1-6 da ANTT do Anexo A). A distinção entre `source_document` como campo obrigatório rastreia diretamente ao guardrail formal do cenário 2 ("DEVE: Citar fonte com identificador do documento em toda resposta"). |
+
+**Score do exercício: 3,0**
+
+---
+
+### Verificação de Armadilhas
+
+O exercício Dev 3.1 não lista armadilhas obrigatórias no formato do exercício 3.2 — mas a skill do papel define critérios específicos que funcionam como pontos de verificação:
+
+| Critério da skill | Status |
+|---|---|
+| Schema Zod válido com `answer`, `source_document`, `confidence_score` | ✅ Presente e correto, com `.strict()` adicional |
+| Guardrail 1 (source_document) bloqueia de fato, não apenas loga | ✅ Implementado via schema — bloqueia na camada Zod |
+| Guardrail 2 (carga perigosa + devolução) detecta e bloqueia | ✅ Implementado em `validateResponse`, retorna `{ success: false }` |
+| Code review com Claude identifica 2+ problemas reais e corrige | ✅ 4 problemas identificados pelo Claude, todos corrigidos |
+| Probabilístico vs. determinístico demonstrado | ✅ Seção 7 com explicação precisa e diagrama conceitual |
+
+Nenhuma armadilha obrigatória deixou de ser identificada.
+
+---
+
+### Pontos Fortes
+
+1. **Análise própria substantiva e anterior ao Claude** — a seção 3 lista 5 problemas com classificação de severidade, impacto em produção, exemplo de código errado e recomendação. Dois deles (console.error e tipo de retorno) não foram identificados pelo Claude, demonstrando competência independente da IA e não dependência do output dela.
+
+2. **Código final coeso e sem violações** — o `response-validator.ts` incorpora todas as correções: pino com `redact`, discriminated union `ValidationResult`, FALLBACK tipado como `AssistantResponse`, Guardrail 1 removido (dead code), listas léxicas expandidas com termos ANTT. O código é pronto para code review real.
+
+3. **Comparação humano vs. Claude com honestidade sobre divergências** — a tabela na seção 5 mostra claramente o que cada um encontrou, o que só um viu, e por quê a divergência é relevante (ex: o Claude não endereçou segurança operacional de logs; o participante não tinha profundidade de domínio ANTT para a cobertura léxica). Isso é o padrão correto de uso de IA como co-reviewer, não como oráculo.
+
+---
+
+### Pontos de Melhoria
+
+1. **Guardrail 1 implementado apenas via schema, não com verificação explícita documentada** — a skill do papel especifica que o Guardrail 1 deve "bloquear de fato respostas sem fonte". O schema Zod cobre isso, mas o entregável não deixa explícito que essa é a estratégia intencional (schema como guardrail). Vale adicionar um comentário no código explicando que o `.min(1)` no `source_document` é o Guardrail 1 — torna a intenção auditável para quem mantiver o código depois.
+
+2. **Guardrail 2 ainda tem limitação semântica sem HITL documentado** — o participante identifica corretamente que o guardrail léxico é contornável por vocabulário diferente, e menciona monitoramento humano no diagrama conceitual. Mas o exercício pede explicitamente ao menos um ponto de HITL concreto — uma linha como "quando `confidence_score < 0.5 && mentionsDangerous`, escalar para supervisor antes de entregar ao atendente" tornaria o HITL operacional, não apenas conceitual.
+
+3. **Evidência de geração com Copilot não é explícita** — o entregável assume que o leitor sabe que o Copilot gerou o código original, mas não há print, export ou transcrição mostrando o código v0 (antes das correções). Em exercícios futuros, incluir o código gerado pelo Copilot *antes* das correções permite visualizar o delta real e validar que a revisão crítica foi sobre código real, não código já corrigido.
+
+---
+
+### Classificação
+
+**Aprovado com distinção (3,0)**
+
+---
+
+### Tópicos da Trilha para Reforço
+
+Score máximo — não há tópicos para reforço obrigatório. Como aprimoramento opcional:
+
+- **HITL operacional vs. conceitual**: praticar a implementação de pontos de human-in-the-loop com lógica de threshold concreta (ex: `confidence_score < N` → fila de revisão humana) e não apenas como princípio arquitetural.
+- **Guardrails semânticos**: explorar abordagens além de correspondência léxica para detecção de padrões perigosos — classificadores leves, few-shot prompts de verificação, ou embeddings de similaridade com casos negativos conhecidos.

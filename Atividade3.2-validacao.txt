@@ -1,0 +1,71 @@
+**Nota ao avaliador:** O entregável submetido (`Atividade3.2-revisao-critica.md`) é o **mesmo arquivo** já avaliado na sessão anterior, com uma diferença importante: esta versão inclui a seção "Processo de geração com o Copilot" e a "Nota regulatória" no início da seção 5, além da correção do Problema 9 (nomes de DB extraídos para variáveis de ambiente, item 11 na tabela de correções). O entregável é materialmente idêntico ao anterior exceto por esses dois acréscimos — que respondem precisamente aos dois pontos de melhoria identificados na avaliação anterior (ausência de evidência do Copilot e nomes hardcoded não corrigidos). A avaliação abaixo reflete esta versão atualizada.
+
+---
+
+## Avaliação do Exercício Dev 3.2 — Revisão Crítica de Código Gerado por IA (versão revisada)
+
+### Resumo
+
+O participante entregou a versão final e completa do exercício, incorporando as lacunas da versão anterior: a evidência de uso do Copilot está documentada com detalhes de iteração (85% gerado corretamente, dois prompts adicionais para corrigir singleton e retorno), o Problema 9 foi corrigido no código com `process.env` para DB e container, e a nota regulatória sobre `attendantEmail` em repouso demonstra reflexão de segurança além do escopo do exercício. Com essas adições, todas as dimensões atingem score máximo.
+
+---
+
+### Scores por Dimensão
+
+| Dimensão | Score | Justificativa |
+|----------|-------|---------------|
+| D1 — Domínio Conceitual | 3 | O participante demonstra domínio preciso de revisão crítica de código gerado por IA: classifica cada problema por tipo (segurança, bug potencial, AGENTS.md, boas práticas), articula as consequências em produção (LGPD/GDPR, startup failure, singleton de cliente), e vai além ao levantar a questão de `attendantEmail` em repouso — distinguindo entre o que o código resolve (vazamento em logs) e o que permanece como risco residual (armazenamento em texto claro). Isso demonstra que revisão crítica não termina no code review, mas inclui análise de conformidade e ciclo de vida do dado. |
+| D2 — Uso de Ferramentas | 3 | Esta versão documenta explicitamente o uso do Copilot: prompt detalhado com regras do AGENTS.md, 85% de acerto na geração inicial, e dois prompts adicionais para corrigir o singleton (Copilot instanciou dentro do handler) e o retorno (`body: 'OK'` em vez de `jsonBody`). O `redact` do pino e a validação do `connectionString` foram gerados corretamente sem ajuste. Isso é evidência real de geração + revisão com iteração documentada — exatamente o padrão esperado para score 3. O Claude foi usado como segunda revisão independente com comparação honesta. |
+| D3 — Qualidade do Entregável | 3 | O `handler.ts` final está correto e sem violações residuais, com o acréscimo da versão anterior: `databaseName` e `containerName` extraídos para `process.env.COSMOS_DATABASE_NAME ?? 'novatech'` e `process.env.COSMOS_CONTAINER_NAME ?? 'feedbacks'` com fallback. A tabela de correções tem 11 itens com regra correspondente para cada um. O código é funcional, segue o AGENTS.md integralmente (Zod, pino com redact, imports estáticos, singleton, try/catch duplo, jsonBody estruturado), e inclui a nota regulatória sobre `attendantEmail` em repouso como contexto para decisões futuras. |
+| D4 — Pensamento Crítico | 3 | As 4 armadilhas obrigatórias foram identificadas na análise própria antes do Claude. A comparação é honesta: o participante reconhece que não identificou o risco de startup do `process.env` (Claude viu) e explica por que é difícil de detectar sem experiência com o comportamento do módulo no startup do Azure Functions. A nota regulatória sobre `attendantEmail` em repouso — identificando que o código corrigido resolve o sintoma (log) mas não o problema subjacente (armazenamento) — é a demonstração de pensamento crítico além do escopo imediato do exercício. |
+| D5 — Aplicabilidade ao Projeto | 3 | O AGENTS.md é referenciado de forma concreta em 11 correções na tabela da seção 6. O `pino` com `redact`, o Zod com `safeParse`, os imports estáticos ESM, o fail-fast no startup e o contrato REST com `jsonBody` são todos rastreáveis a decisões dos cenários 1 e 2. A menção à LGPD como risco regulatório é específica ao contexto brasileiro da NovaTech. O `process.env` com fallback (`?? 'novatech'`) reflete o padrão de configurabilidade multi-ambiente definido nas ADRs. |
+
+**Score do exercício: 3,0**
+
+---
+
+### Verificação de Armadilhas
+
+| Armadilha obrigatória | Identificada na análise própria? | Observação |
+|---|---|---|
+| `as any` sem validação Zod — Violação AGENTS.md | ✅ Sim (Problema 1) | Identificado como violação de AGENTS.md + problema de segurança |
+| `console.log` em vez de pino — Violação AGENTS.md | ✅ Sim (Problema 3) | Identificado com detalhe sobre `JSON.stringify` serializando dados sensíveis |
+| `require` dinâmico — Violação AGENTS.md | ✅ Sim (Problema 7) | Identificado com a consequência de performance (cliente recriado por requisição) |
+| `attendantEmail` logado — Problema de segurança | ✅ Sim (Problema 3) | Identificado com menção a LGPD/GDPR — mais completo que o mínimo exigido |
+
+Todas as 4 armadilhas obrigatórias identificadas na análise própria. Nenhuma regra de corte de D4 aplicável.
+
+---
+
+### Pontos Fortes
+
+1. **Evidência de uso do Copilot com iteração real documentada** — a descrição do processo (85% correto, singleton dentro do handler corrigido via segundo prompt, retorno `body: 'OK'` corrigido via terceiro prompt, `redact` e validação de env gerados corretamente) é exatamente o nível de detalhe que permite avaliar que o Copilot foi usado como ferramenta real, não como ornamento. A distinção entre o que o Copilot acertou e o que precisou de ajuste é pedagogicamente valiosa — demonstra que o participante sabe usar o Copilot com supervisão ativa.
+
+2. **Nota regulatória como extensão proativa da análise** — identificar que `attendantEmail` em texto claro no CosmosDB é um risco que o code review não resolve, e listar as três decisões que precisam ser tomadas (necessidade do dado, criptografia em repouso, política de retenção e controle de acesso), demonstra que o participante pensa em segurança de dados como disciplina, não como lista de checagem. Vai além do exercício sem sair do escopo do projeto.
+
+3. **Correção completa do Problema 9 com fallback sensato** — usar `process.env.COSMOS_DATABASE_NAME ?? 'novatech'` em vez de remover o literal ou deixar o campo undefined é a escolha correta: mantém configurabilidade sem quebrar ambientes que não definiram a variável. O padrão é consistente com o `connectionString` (que usa `throw` para fail-fast porque a ausência é bloqueante) e o nome do banco (que usa fallback porque tem valor default válido) — distinção que demonstra julgamento de engenharia, não aplicação mecânica de uma regra.
+
+---
+
+### Pontos de Melhoria
+
+1. **`attendantEmail` logado via `redact` mas ainda exposto estruturalmente no objeto `feedback`** — o código constrói o objeto `feedback` com `attendantEmail: validBody.attendantEmail` antes de persistir. Se no futuro um desenvolvedor adicionar `logger.info(feedback, 'Feedback completo')` para debug, o `redact: ['feedback.attendantEmail']` protege — mas o path `feedback.attendantEmail` está correto no redact? O pino faz redact de propriedades aninhadas pelo path completo, não pelo nome da propriedade. Verificar se o redact está configurado corretamente para o objeto que seria logado (teste unitário de redact seria o próximo passo).
+
+2. **Ausência de validação de presença para `COSMOS_DATABASE_NAME` e `COSMOS_CONTAINER_NAME`** — o `connectionString` usa `throw` no startup (fail-fast) porque sua ausência derruba o serviço de forma obscura. O `databaseName` e `containerName` usam fallback `??`, o que é correto para valores opcionais. Mas o entregável não documenta explicitamente por que essa assimetria existe — um futuro desenvolvedor pode não entender por que algumas env vars usam `throw` e outras usam `??`. Adicionar um comentário breve (`// opcional — fallback para ambiente local`) tornaria a intenção auditável.
+
+3. **Schema `attendantEmail` como campo obrigatório sem documentar a decisão de produto** — o `feedbackBodySchema` define `attendantEmail` como obrigatório (`z.string().email()`). Se a nota regulatória aponta que o dado deveria ser avaliado quanto à necessidade, torná-lo obrigatório no schema é uma decisão de produto que deveria estar documentada (ex: "obrigatório para rastreabilidade de feedback por atendente — pendente avaliação LGPD"). Sem essa documentação, o schema parece uma implementação mecânica do código original, não uma decisão consciente.
+
+---
+
+### Classificação
+
+**Aprovado com distinção (3,0)**
+
+---
+
+### Tópicos da Trilha para Reforço
+
+Score máximo — não há tópicos para reforço obrigatório. Como aprimoramento para o próximo nível:
+
+- **Testes de redact em pino**: praticar escrever um teste unitário que verifica que `attendantEmail` não aparece na saída do logger mesmo quando o objeto completo é passado — fecha o loop de "defesa em profundidade testada" vs "defesa em profundidade assumida".
+- **Modelagem de ameaças para dados em repouso**: explorar STRIDE ou Privacy by Design aplicados ao CosmosDB — quando usar criptografia de campo, quando pseudonimizar, e quando a política de acesso ao container é suficiente.

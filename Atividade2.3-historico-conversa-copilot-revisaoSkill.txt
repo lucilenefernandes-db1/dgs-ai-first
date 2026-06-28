@@ -1,0 +1,21 @@
+o arquivo gerado está sem cabeçalho adicione essas linhas no início do arquivo
+# TypeScript Conventions
+
+> **Nível:** Foundation · **Lida por:** todas as skills Domain e Artifact  
+> **Frase-ativação:** Use when creating or editing any `.ts` or `.tsx` file in the project.
+
+Vou inserir o cabeçalho no topo do arquivo e conferir o início para garantir que ele entrou exatamente antes da seção 1.
+
+Generating patch (11 lines) in [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/skills/foundation/typescript-conventions.md)
+
+
+```
+
+```
+O cabeçalho foi adicionado. Vou ler as primeiras linhas para confirmar a formatação final e então encerrar.
+
+Read [](file:///c%3A/Lu/DGS-AI-FIRST/Atividade%202/Entregaveis/novatech-assistant/skills/foundation/typescript-conventions.md#1-1), lines 1 to 14
+
+Adicionei o cabeçalho no início de typescript-conventions.md. O arquivo agora começa com o título, o nível Foundation e a frase-ativação, seguido da seção 1 sem alterar o restante do conteúdo.
+
+Made changes.
